@@ -35,15 +35,14 @@ def main(checkpoint, output_dir, cfg_name, device):
     pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
     
     # Initialize Hydra
-    hydra.initialize(config_path=str(pathlib.Path(__file__).parent.joinpath(
-        './manifeel','config')), version_base=None)
+    hydra.initialize(config_path='manifeel/config', version_base=None)
     # Load configuration
     # TO-DO: allows passing argument for config_name
     cfg = hydra.compose(config_name=str(cfg_name))
 
     # load checkpoint
     payload = torch.load(open(checkpoint, 'rb'), pickle_module=dill)
-    # cfg = payload['cfg']
+    cfg = payload['cfg']
     cls = hydra.utils.get_class(cfg._target_)
     workspace = cls(cfg, output_dir=output_dir)
     workspace: BaseWorkspace
@@ -57,10 +56,20 @@ def main(checkpoint, output_dir, cfg_name, device):
     device = torch.device(device)
     policy.to(device)
     policy.eval()
+
+    if cfg.task.env_runner is None:
+        fresh_cfg = hydra.compose(
+            config_name=str(cfg_name),
+            overrides=[
+                "task=vistac_wrist",  # Match your training task name
+                f"isaacgym_cfg_name={cfg.get('isaacgym_cfg_name', 'isaacgym_config_usb.yaml')}"
+            ]
+        )
+        cfg_task_env_runner = fresh_cfg.task.env_runner
     
     # run eval
     env_runner = hydra.utils.instantiate(
-        cfg.task.env_runner,
+        cfg_task_env_runner,
         output_dir=output_dir)
     runner_log = env_runner.run(policy)
     

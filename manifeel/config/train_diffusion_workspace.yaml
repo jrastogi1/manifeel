@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - task: vistac_pih_vision_shear
+  - task: vistac_wrist
 
 name: train_diffusion_unet_image
 _target_: manifeel.workspace.train_diffusion_unet_image_workspace.TrainDiffusionUnetImageWorkspace
@@ -100,7 +100,7 @@ training:
   device: "cuda:0" # default: cuda:0
   seed: 42
   debug: False
-  resume: True
+  resume: False
   # optimization
   lr_scheduler: cosine
   lr_warmup_steps: 500
@@ -111,10 +111,10 @@ training:
   use_ema: True
   # training loop control
   # in epochs
-  rollout_every: 10 # default: 50
+  rollout_every: 5 # default: 50
   checkpoint_every: 1 # default: 50
-  val_every: 10000
-  sample_every: 10000 # default: 5
+  val_every: 1
+  sample_every: 5 # default: 5
   # steps per epoch
   max_train_steps: null
   max_val_steps: null
@@ -125,7 +125,7 @@ training:
 
 logging:
   project: diffusion_policy_debug
-  resume: True
+  resume: False
   mode: online
   name: ${now:%Y.%m.%d-%H.%M.%S}_${name}_${task_name}
   tags: ["${name}", "${task_name}", "${exp_name}"]
